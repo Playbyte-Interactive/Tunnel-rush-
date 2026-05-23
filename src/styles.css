@@ -1,0 +1,330 @@
+:root {
+  color-scheme: dark;
+  --bg: #071017;
+  --panel: rgba(7, 16, 23, 0.74);
+  --panel-strong: rgba(10, 18, 28, 0.92);
+  --line: rgba(112, 246, 255, 0.28);
+  --line-hot: rgba(255, 215, 110, 0.45);
+  --text: #ecffff;
+  --muted: #9fb6b9;
+  --cyan: #70f6ff;
+  --gold: #ffd76e;
+  --coral: #ff6a3d;
+  --green: #7fff95;
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overscroll-behavior: none;
+}
+
+body {
+  overflow: hidden;
+  color: var(--text);
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+}
+
+button {
+  font: inherit;
+}
+
+.app {
+  min-height: 100%;
+  background:
+    linear-gradient(135deg, rgba(112, 246, 255, 0.12), transparent 34%),
+    linear-gradient(315deg, rgba(255, 106, 61, 0.1), transparent 36%),
+    var(--bg);
+}
+
+.playfield {
+  position: relative;
+  width: 100vw;
+  height: 100dvh;
+  min-height: 480px;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.hud {
+  position: absolute;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.hud-top {
+  top: max(18px, env(safe-area-inset-top));
+  left: max(18px, env(safe-area-inset-left));
+  right: max(18px, env(safe-area-inset-right));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.hud-buttons {
+  display: flex;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.brand-chip,
+.stats-strip,
+.icon-button,
+.state-panel {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.34);
+  backdrop-filter: blur(18px);
+}
+
+.brand-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 8px;
+  color: var(--cyan);
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.brand-chip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.icon-button {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  color: var(--text);
+  cursor: pointer;
+  pointer-events: auto;
+  transition:
+    transform 140ms ease,
+    border-color 140ms ease,
+    opacity 140ms ease;
+}
+
+.icon-button:disabled {
+  cursor: default;
+  opacity: 0.42;
+}
+
+.icon-button:not(:disabled):hover,
+.primary-button:hover {
+  border-color: rgba(255, 255, 255, 0.56);
+  transform: translateY(-1px);
+}
+
+.stats-strip {
+  left: 50%;
+  top: calc(max(18px, env(safe-area-inset-top)) + 54px);
+  transform: translateX(-50%);
+  width: min(560px, calc(100vw - 28px));
+  min-height: 46px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: stretch;
+  border-radius: 8px;
+  overflow: hidden;
+  opacity: 0.92;
+}
+
+.stats-strip span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: 8px 10px;
+  color: var(--muted);
+  font-size: 0.74rem;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.stats-strip span + span {
+  border-left: 1px solid rgba(112, 246, 255, 0.14);
+}
+
+.stats-strip strong {
+  overflow: hidden;
+  color: var(--text);
+  font-family: "Arial Black", Impact, ui-sans-serif, sans-serif;
+  font-size: 1.05rem;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+}
+
+.state-panel {
+  position: absolute;
+  z-index: 4;
+  top: 50%;
+  left: 50%;
+  width: min(372px, calc(100vw - 36px));
+  transform: translate(-50%, -50%);
+  border-color: var(--line-hot);
+  border-radius: 8px;
+  padding: 24px;
+  text-align: center;
+}
+
+.state-panel::before {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  border: 1px solid rgba(112, 246, 255, 0.14);
+  border-radius: 6px;
+  pointer-events: none;
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  color: var(--gold);
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  font-family: "Arial Black", Impact, ui-sans-serif, sans-serif;
+  font-size: 3rem;
+  line-height: 0.96;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+
+.final-stats {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 16px;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.final-stats span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.panel-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+.primary-button {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 20px;
+  border: 1px solid rgba(112, 246, 255, 0.54);
+  border-radius: 8px;
+  color: #071017;
+  background: linear-gradient(135deg, var(--gold), var(--green) 52%, var(--cyan));
+  box-shadow: 0 18px 36px rgba(112, 246, 255, 0.22);
+  cursor: pointer;
+  font-weight: 900;
+  transition:
+    transform 140ms ease,
+    border-color 140ms ease;
+}
+
+@media (max-width: 640px) {
+  .playfield {
+    min-height: 100dvh;
+  }
+
+  .hud-top {
+    top: max(12px, env(safe-area-inset-top));
+    left: max(12px, env(safe-area-inset-left));
+    right: max(12px, env(safe-area-inset-right));
+  }
+
+  .brand-chip {
+    height: 36px;
+    padding: 0 10px;
+    font-size: 0.76rem;
+  }
+
+  .icon-button {
+    width: 38px;
+    height: 38px;
+  }
+
+  .stats-strip {
+    top: calc(max(12px, env(safe-area-inset-top)) + 48px);
+    min-height: 48px;
+  }
+
+  .stats-strip span {
+    padding: 7px 3px;
+    font-size: 0.62rem;
+  }
+
+  .stats-strip strong {
+    font-size: 0.86rem;
+  }
+
+  .state-panel {
+    top: 51%;
+    padding: 20px;
+  }
+
+  h1 {
+    font-size: 2.28rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .brand-chip span {
+    max-width: 116px;
+  }
+
+  .stats-strip strong {
+    font-size: 0.78rem;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}
