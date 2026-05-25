@@ -1,7 +1,5 @@
 // Web Audio API Context
 let ctx: AudioContext | null = null;
-let bgmOsc: OscillatorNode | null = null;
-let bgmGain: GainNode | null = null;
 let isMuted = false;
 
 export function initAudio() {
@@ -16,7 +14,6 @@ export function initAudio() {
 
 export function toggleMute() {
   isMuted = !isMuted;
-  if (bgmGain) bgmGain.gain.value = isMuted ? 0 : 0.08;
   return isMuted;
 }
 
@@ -135,40 +132,8 @@ export function playUIClick() {
 
 export function startBGM() {
   initAudio();
-  if (!ctx || bgmOsc) return; 
-  
-  bgmOsc = ctx.createOscillator();
-  bgmOsc.type = 'sawtooth';
-  bgmOsc.frequency.value = 55; 
-  
-  bgmGain = ctx.createGain();
-  bgmGain.gain.value = isMuted ? 0 : 0.08;
-  
-  const lfo = ctx.createOscillator();
-  lfo.type = 'sine';
-  lfo.frequency.value = 4; 
-  
-  const lfoGain = ctx.createGain();
-  lfoGain.gain.value = 400; 
-  lfo.connect(lfoGain);
-
-  const filter = ctx.createBiquadFilter();
-  filter.type = 'lowpass';
-  filter.frequency.value = 300; 
-  lfoGain.connect(filter.frequency);
-
-  bgmOsc.connect(filter);
-  filter.connect(bgmGain);
-  bgmGain.connect(ctx.destination);
-  
-  bgmOsc.start();
-  lfo.start();
 }
 
 export function stopBGM() {
-  if (bgmOsc) {
-    bgmOsc.stop();
-    bgmOsc.disconnect();
-    bgmOsc = null;
-  }
+  // The low-frequency gameplay drone was removed; keep this no-op for callers.
 }
