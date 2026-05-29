@@ -1,6 +1,8 @@
 import { GameState, NUM_FACES, FACE_ANGLE, ObstacleLayer, getObstacleRotation, LEVEL_LENGTH } from "./tunnelRush";
 
-// Progressive Dark Themes
+const NEAR_CLIP = 24;
+const SOLID_CORE_SCALE = 0.018;
+
 function getLevelColors(level: number) {
   const themes = [
     { main: "#ff2a2a", d1: "#a60000", d2: "#7a0000", d3: "#d90000", wire: "rgba(255, 60, 60, 0.6)", bg1: "#0a0000", bg2: "#140000" },
@@ -46,7 +48,7 @@ export function drawTunnelRush(
   };
 
   const project = (angle: number, z: number, innerScale = 1) => {
-    const relZ = Math.max(5, z); 
+    const relZ = Math.max(NEAR_CLIP, z); 
     
     const x3d = Math.cos(angle) * (TUNNEL_RADIUS * innerScale);
     const y3d = Math.sin(angle) * (TUNNEL_RADIUS * innerScale);
@@ -92,7 +94,7 @@ export function drawTunnelRush(
 
   type RenderItem = 
     | { type: 'tunnel', z: number, nextZ: number, globalZ: number }
-    | { type: 'obstacle', z: number, obs: ObstacleLayer };
+    | { type: 'obstacle', z: number, frontZ: number, backZ: number, obs: ObstacleLayer };
 
   const renderItems: RenderItem[] = [];
 
@@ -104,9 +106,10 @@ export function drawTunnelRush(
   }
 
   game.obstacles.forEach((obs) => {
-    const z = obs.distance - game.distance;
-    if (z > -obs.depth && z <= maxTunnelDistance) {
-      renderItems.push({ type: 'obstacle', z: Math.max(0, z), obs });
+    const backZ = obs.distance - game.distance;
+    const frontZ = backZ - obs.depth;
+    if (backZ > NEAR_CLIP && frontZ <= maxTunnelDistance) {
+      renderItems.push({ type: 'obstacle', z: backZ, frontZ, backZ, obs });
     }
   });
 
@@ -137,20 +140,17 @@ export function drawTunnelRush(
         drawPolygon(p1, p2, p3, p4, faceColor, colors.wire, item.z, 0.9);
       }
     } else {
-      const thickness = item.obs.depth; 
-      const frontZ = Math.max(5, item.z - thickness);
+      const backZ = item.backZ;
+      const frontZ = Math.max(NEAR_CLIP, item.frontZ);
+      if (backZ <= frontZ + 1) return;
+
       const obstacleRotation = getObstacleRotation(item.obs, game.distance);
       
-      const twistBack = getTwistAtZ(item.z) + obstacleRotation;
+      const twistBack = getTwistAtZ(backZ) + obstacleRotation;
       const twistFront = getTwistAtZ(frontZ) + obstacleRotation;
 
       const obsLevel = Math.floor(item.obs.distance / LEVEL_LENGTH);
       const colors = getLevelColors(obsLevel);
-
-      // This logic defines how the shapes look
-      let innerScale = 0.25; 
-      if (item.obs.pattern === "pinwheel" || item.obs.pattern === "blades") innerScale = 0.08; 
-      if (item.obs.pattern === "beam") innerScale = 0.02; // Stretches fully across the center to form a bar
 
       for (let j = 0; j < NUM_FACES; j++) {
         if (item.obs.blockedFaces[j]) {
@@ -159,19 +159,22 @@ export function drawTunnelRush(
           const a1Front = j * FACE_ANGLE + twistFront;
           const a2Front = (j + 1) * FACE_ANGLE + twistFront;
 
-          const pb1 = project(a1Back, item.z);
-          const pb2 = project(a2Back, item.z);
-          const pb3 = project(a2Back, item.z, innerScale);
-          const pb4 = project(a1Back, item.z, innerScale);
+          const pb1 = project(a1Back, backZ);
+          const pb2 = project(a2Back, backZ);
+          const pb3 = project(a2Back, backZ, SOLID_CORE_SCALE);
+          const pb4 = project(a1Back, backZ, SOLID_CORE_SCALE);
 
           const pf1 = project(a1Front, frontZ);
           const pf2 = project(a2Front, frontZ);
-          const pf3 = project(a2Front, frontZ, innerScale);
-          const pf4 = project(a1Front, frontZ, innerScale);
+          const pf3 = project(a2Front, frontZ, SOLID_CORE_SCALE);
+          const pf4 = project(a1Front, frontZ, SOLID_CORE_SCALE);
 
           // Culling logic properly hides walls touching each other to fix geometry artifacts
           const isLeftBlocked = item.obs.blockedFaces[(j - 1 + NUM_FACES) % NUM_FACES];
           const isRightBlocked = item.obs.blockedFaces[(j + 1) % NUM_FACES];
+
+          drawPolygon(pb1, pb2, pb3, pb4, colors.d2, "rgba(255,255,255,0.18)", backZ, 0.45);
+          drawPolygon(pb1, pf1, pf2, pb2, colors.d1, "none", frontZ);
 
           if (!isLeftBlocked) drawPolygon(pb1, pf1, pf4, pb4, colors.d1, "none", frontZ); 
           if (!isRightBlocked) drawPolygon(pb2, pf2, pf3, pb3, colors.d2, "none", frontZ); 
